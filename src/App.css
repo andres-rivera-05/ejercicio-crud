@@ -9,3 +9,7 @@ img {
   width: 66px;
   border-radius: 50%;
 }
+
+.spinner-border {
+  color: #156ef9;
+}
