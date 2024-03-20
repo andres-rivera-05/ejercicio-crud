@@ -1,5 +1,9 @@
 import React, { useEffect, useState } from 'react'
 import axios from 'axios'
+import { alertaError, alertaSuccess, alertaWarning } from '../funcions.js'
+import Swal from "sweetalert2";
+import withReactContent from "sweetalert2-react-content";
+
 
 export const Usuarios = () => {
     const url = 'https://api.escuelajs.co/api/v1/users'
@@ -13,6 +17,7 @@ export const Usuarios = () => {
     const [avatar, setAvatar] = useState('')
     const [rol, setRol] = useState('')
     const [contador, setContador] = useState(0)
+    const [operation, setOperation]= useState(0)
 
     const getUsuarios = async () => {
         try {
@@ -36,6 +41,7 @@ export const Usuarios = () => {
         setContrasena('')
         setNombre('')
         setRol('')
+        setOperation(operacion)
 
         if(operacion === 1){
             setTitleModal("Registrar Usuarios")
@@ -71,20 +77,71 @@ export const Usuarios = () => {
             }else if(metodo === 'DELETE'){
                 mensaje = "Se elimino el usuario"
             }
+            alertaSuccess(mensaje)
             document.getElementById('btnCerrarModal').click();
             setContador(contador + 1)
         }).catch((error) =>{
+            alertaError(error)
             console.error(error)
         })
     }
 
     const validar = () => {
-        if(nombre.length === 0 || correo.length === 0 || contrasena.length === 0 
-           || rol.length === 0 || avatar.length === 0){
-            alert("Completa los campos")
-            return
-        }
+        let payload;
+        let metodo;
+        let urlAxios;
 
+        if(nombre === ''){
+            alertaWarning('Escriba el nombre del usuario', 'nombre')
+        }else if(correo === ''){
+            alertaWarning('Escriba el correo electronico', 'correo')
+        }else if(contrasena === ''){
+            alertaWarning('Escriba una constrasena', 'contrasena')
+        }else if(rol === ''){
+            alertaWarning('Escriba un rol', 'rol')
+        }else if(avatar === ''){
+            alertaWarning('Ingrese un avatar', 'avatar')
+        }else{
+            payload = {
+                email : correo,
+                password : contrasena,
+                name: nombre,
+                role: rol,
+                avatar: avatar
+           }
+
+            if (operation === 1){
+                metodo = 'POST'
+                urlAxios = 'https://api.escuelajs.co/api/v1/users'
+            }else if(operation === 2){
+                metodo = 'PUT'
+                urlAxios = `https://api.escuelajs.co/api/v1/users/${id}`
+            }
+
+            enviarSolicitud(urlAxios, metodo, payload);
+        }
+    }
+
+    const deleteUsuario = (id) => {
+        const url = `https://api.escuelajs.co/api/v1/users/${id}`
+
+        const MySwal = withReactContent(Swal)
+        MySwal.fire({
+            title:'Estas seguro de eliminar este Usuario?',
+            icon: 'question',
+            text:'No habra marcha atras',
+            showCancelButton: true,
+            confirmButtonText: 'si, Eliminar',
+            cancelButtonText: 'Cancelar'
+        }).then((result)=>{
+            if(result.isConfirmed){
+                setId(id)
+                enviarSolicitud(url, 'DELETE',{})
+            }
+        }).catch((error)=>{
+            alertaError(error)
+            console.log(error)
+        })
     }
 
     return (
@@ -133,11 +190,11 @@ export const Usuarios = () => {
                                                         <td>{item.password}</td>
                                                         <td>{item.role}</td>
                                                         <td>
-                                                            <div className="d-flex justify-content-center" data-bs-toggle="modal" data-bs-target="#modalUsuario">
-                                                                <button className='btn btn-warning me-2' onClick={()=>openModal(2,item.id,item.name,item.password,item.email,item.role, item.avatar)}>
+                                                            <div className="d-flex justify-content-center">
+                                                                <button className='btn btn-warning me-2' data-bs-toggle="modal" data-bs-target="#modalUsuario" onClick={()=>openModal(2,item.id,item.name,item.password,item.email,item.role, item.avatar)}>
                                                                     <i className='fa-solid fa-edit'></i>
                                                                 </button>
-                                                                <button className='btn btn-danger' data-bs-toggle="modal" data-bs-target="#modalUsuario">
+                                                                <button className='btn btn-danger' onClick={()=>deleteUsuario(item.id)}>
                                                                     <i className='fa-solid fa-trash'></i>
                                                                 </button>
                                                             </div>
@@ -187,7 +244,7 @@ export const Usuarios = () => {
                         </div>
                         <div className="modal-footer">
                             <button type="button" id='btnCerrarModal' className="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                            <button type="button" onClick={validar} className="btn btn-primary">Guardar</button>
+                            <button type="button" onClick={()=>validar()} className="btn btn-primary">Guardar</button>
                         </div>
                     </div>
                 </div>
