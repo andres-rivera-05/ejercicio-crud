@@ -1,6 +1,4 @@
 html, body{
-  padding: 0;
-  margin: 0;
   background-color: #181818 !important;
   color:  white;
 }
@@ -12,4 +10,9 @@ img {
 
 .spinner-border {
   color: #156ef9;
+}
+
+.btn-primary {
+  background-color: #1e2e39 !important;
+  border-color: #253e4f !important;
 }
